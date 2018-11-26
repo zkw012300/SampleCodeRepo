@@ -4,6 +4,7 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
 import android.os.RemoteException;
+import android.os.SystemClock;
 import android.util.Log;
 
 public class MyService extends Service {
@@ -21,7 +22,8 @@ public class MyService extends Service {
     private class MyBinder extends IAIDLTest.Stub {
         @Override
         public void testMethod(int a) throws RemoteException {
-            Log.e(this.getClass().getSimpleName(), "MyService Receive Msg: " + a);
+            SystemClock.sleep(5000);
+            Log.e(this.getClass().getSimpleName(), "MyService Receive Msg: " + a + "\t at Thread: " + Thread.currentThread().getName());
             if (mCallback != null)
                 mCallback.callback(a);
         }

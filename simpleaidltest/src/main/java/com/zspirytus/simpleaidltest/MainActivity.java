@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
@@ -24,7 +25,7 @@ public class MainActivity extends AppCompatActivity {
     private class ICallbackImpl extends ICallback.Stub {
         @Override
         public void callback(final int a) throws RemoteException {
-            MainActivity.this.runOnUiThread(new Runnable() {
+            mRemoteMsg.post(new Runnable() {
                 @Override
                 public void run() {
                     switch (a) {
@@ -62,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
                 mBinder = IAIDLTest.Stub.asInterface(iBinder);
+                Log.e(this.getClass().getSimpleName(), "MyService Connect.");
                 try {
                     mBinder.setCallback(mCallback);
                 } catch (RemoteException e) {
@@ -71,7 +73,8 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onServiceDisconnected(ComponentName componentName) {
-                mBinder = null;
+                Log.e(this.getClass().getSimpleName(), "MyService Disconnect. Receive From Thread: " + Thread.currentThread().getName());
+                bindService();
             }
         };
     }
@@ -111,11 +114,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void start() {
-        try {
-            mBinder.testMethod(A);
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        }
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    mBinder.testMethod(A);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        thread.setName("myThread");
+        thread.start();
     }
 
     private void a1() {
